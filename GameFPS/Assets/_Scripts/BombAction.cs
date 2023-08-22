@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class BombAction : MonoBehaviour
 {
+    [SerializeField]
+    private GameObject fx;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -18,6 +21,9 @@ public class BombAction : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
+        GameObject obj = Instantiate(fx);
+        obj.transform.position = transform.position;
+        Destroy(obj, 3f);
         gameObject.SetActive(false);
     }
 }

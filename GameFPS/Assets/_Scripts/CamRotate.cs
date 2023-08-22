@@ -7,6 +7,9 @@ public class CamRotate : MonoBehaviour
 {
     public float speed = 10f;
 
+    [SerializeField, Range(0, 80)]
+    private float angleClamp = 10f;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -18,8 +21,16 @@ public class CamRotate : MonoBehaviour
     {
         float mouseY = Input.GetAxis("Mouse Y");
 
-        Vector3 dir = new Vector3(Mathf.Clamp(-mouseY, -90, 90), 0, 0);
-
-        transform.eulerAngles += (dir * speed * Time.deltaTime);
+        Vector3 dir = transform.localRotation.eulerAngles;
+        dir.x -= mouseY;
+        if (dir.x > 180)
+        {
+            dir.x = Mathf.Clamp(dir.x, 270 + angleClamp, 370);
+        }
+        else
+        {
+            dir.x = Mathf.Clamp(dir.x, -10, 90 - angleClamp);
+        }
+        transform.localRotation = Quaternion.Euler(new Vector3(dir.x, 0, 0));
     }
 }

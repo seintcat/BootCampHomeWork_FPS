@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.AI;
+using UnityEngine.UI;
 
 public class PlayerFire : MonoBehaviour
 {
@@ -15,6 +16,10 @@ public class PlayerFire : MonoBehaviour
     private GameObject hitEffect;
     [SerializeField]
     private ParticleSystem particleSystem;
+    [SerializeField]
+    private int damage = 1;
+    [SerializeField]
+    private PlayerMove player;
 
     // Start is called before the first frame update
     void Start()
@@ -25,9 +30,15 @@ public class PlayerFire : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if(player.hpBar < 0.001)
+        {
+            return;
+        }
+
         if (Input.GetMouseButtonDown(1))
         {
-            Rigidbody bombInstance = Instantiate(bomb).GetComponent<Rigidbody>();
+            Rigidbody bombInstance = ObjectPoolingManager.Pooling(bomb).GetComponent<Rigidbody>();
+            bombInstance.velocity = Vector3.zero;
             bombInstance.transform.position = firePos.position;
             bombInstance.AddForce(Camera.main.transform.forward * power, ForceMode.Impulse);
         }
@@ -41,6 +52,12 @@ public class PlayerFire : MonoBehaviour
                 particleSystem.transform.position = hit.point;
                 particleSystem.transform.forward = hit.normal;
                 particleSystem.Play();
+
+                EnemyFSM enemy = hit.collider.gameObject.GetComponent<EnemyFSM>();
+                if (enemy != null)
+                {
+                    enemy.Damage(damage);
+                }
             }
         }
     }

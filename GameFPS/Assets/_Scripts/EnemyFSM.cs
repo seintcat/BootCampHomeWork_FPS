@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.UI;
 
 public class EnemyFSM : MonoBehaviour
@@ -28,6 +29,8 @@ public class EnemyFSM : MonoBehaviour
     private int walkActions;
     [SerializeField]
     private int dieActions;
+    [SerializeField]
+    private NavMeshAgent agent;
 
     private EnemyState state;
     private PlayerMove player;
@@ -56,6 +59,7 @@ public class EnemyFSM : MonoBehaviour
         origin = transform.position;
         hpNow = maxHp;
         walked = false;
+        agent.stoppingDistance = 0;
     }
 
     // Update is called once per frame
@@ -94,10 +98,8 @@ public class EnemyFSM : MonoBehaviour
 
         if(controller.enabled)
         {
-            dir = dir.normalized;
-            dir.y -= (gravity * Time.deltaTime);
-            controller.Move(new Vector3(0, -gravity, 0) * Time.deltaTime * 3);
-            controller.Move(dir * Time.deltaTime * (state == EnemyState.Move ? moveSpeed : returnSpeed));
+            //controller.Move(new Vector3(0, -gravity, 0) * Time.deltaTime * 3);
+            //controller.Move(dir * Time.deltaTime * (state == EnemyState.Move ? moveSpeed : returnSpeed));
         }
     }
 
@@ -105,6 +107,8 @@ public class EnemyFSM : MonoBehaviour
     {
         walked = false;
         animator.CrossFade("Idle", 0.1f);
+        agent.isStopped = true;
+        agent.ResetPath();
         if ( (player.transform.position - transform.position).magnitude < findDistance)
         {
             state = EnemyState.Move;
@@ -119,15 +123,14 @@ public class EnemyFSM : MonoBehaviour
     {
         dir = player.transform.position - transform.position;
         float distance = dir.magnitude;
-        Vector3 look = player.transform.position;
-        look.y = transform.position.y;
-        transform.LookAt(look);
 
         if (!walked)
         {
             animator.CrossFade("Run", 0.1f);
+            agent.speed = moveSpeed;
             walked = true;
         }
+        agent.SetDestination(player.transform.position);
 
         if (distance < attackDistance)
         {
@@ -146,6 +149,8 @@ public class EnemyFSM : MonoBehaviour
         if ((player.transform.position - transform.position).magnitude > attackDistance && attack == null)
         {
             state = EnemyState.Move;
+            agent.isStopped = true;
+            agent.ResetPath();
         }
 
         if (attack == null)
@@ -159,6 +164,9 @@ public class EnemyFSM : MonoBehaviour
         if ((player.transform.position - transform.position).magnitude < attackDistance)
         {
             yield return new WaitForSeconds(0f);
+            Vector3 look = player.transform.position;
+            look.y = transform.position.y;
+            transform.LookAt(look);
             animator.CrossFade("Attack", 0.1f);
             yield return new WaitForSeconds(0f);
             yield return new WaitForSeconds(2.5f);
@@ -180,11 +188,11 @@ public class EnemyFSM : MonoBehaviour
     {
         dir = origin - transform.position;
         float distance = dir.magnitude;
-        Vector3 look = origin;
-        look.y = transform.position.y;
-        dir = dir.normalized;
-        dir.y -= transform.position.y;
-        transform.LookAt(look);
+        //Vector3 look = origin;
+        //look.y = transform.position.y;
+        //dir = dir.normalized;
+        //dir.y -= transform.position.y;
+        //transform.LookAt(look);
 
         if (!walked)
         {
@@ -198,7 +206,9 @@ public class EnemyFSM : MonoBehaviour
                     break;
             }
             walked = true;
+            agent.speed = returnSpeed;
         }
+        agent.destination = origin;
 
         if ((player.transform.position - transform.position).magnitude < findDistance)
         {
@@ -232,6 +242,8 @@ public class EnemyFSM : MonoBehaviour
     {
         if(damaged == null)
         {
+            agent.isStopped = true;
+            agent.ResetPath();
             damaged = _Damaged();
             StartCoroutine(damaged);
         }
@@ -251,6 +263,8 @@ public class EnemyFSM : MonoBehaviour
     {
         walked = false;
         controller.enabled = false;
+        agent.isStopped = true;
+        agent.ResetPath();
         switch (Random.Range(0, dieActions))
         {
             case 0:
@@ -267,6 +281,8 @@ public class EnemyFSM : MonoBehaviour
     {
         if (delay == null)
         {
+            agent.isStopped = true;
+            agent.ResetPath();
             delay = _Delay();
             StartCoroutine(delay);
         }

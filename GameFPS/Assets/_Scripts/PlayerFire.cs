@@ -20,6 +20,8 @@ public class PlayerFire : MonoBehaviour
     private int damage = 1;
     [SerializeField]
     private PlayerMove player;
+    [SerializeField]
+    private Animator playerAnimator;
 
     // Start is called before the first frame update
     void Start()
@@ -34,6 +36,10 @@ public class PlayerFire : MonoBehaviour
         {
             return;
         }
+        if (!GameManagerUI.gameStart)
+        {
+            return;
+        }
 
         if (Input.GetMouseButtonDown(1))
         {
@@ -44,7 +50,8 @@ public class PlayerFire : MonoBehaviour
         }
         if (Input.GetMouseButtonDown(0))
         {
-            Ray ray = new Ray(Camera.main.transform.position, Camera.main.transform.forward);
+            playerAnimator.Play("demo_combat_shoot");
+            Ray ray = new Ray(Camera.main.transform.position + Camera.main.transform.forward, Camera.main.transform.forward);
             RaycastHit hit;
 
             if(Physics.Raycast(ray, out hit))

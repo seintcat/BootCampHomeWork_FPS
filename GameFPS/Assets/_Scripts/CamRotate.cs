@@ -19,6 +19,10 @@ public class CamRotate : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (!GameManagerUI.gameStart)
+        {
+            return;
+        }
         float mouseY = Input.GetAxis("Mouse Y");
 
         Vector3 dir = transform.localRotation.eulerAngles;

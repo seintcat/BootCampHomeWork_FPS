@@ -16,7 +16,9 @@ public class PlayerMove : MonoBehaviour
     [SerializeField]
     private Slider slider;
     [SerializeField]
-    private Animator animator;
+    private Animator uiAnimator;
+    [SerializeField]
+    private Animator playerAnimator;
 
     private bool isJumping;
     private float yVelocity;
@@ -37,7 +39,7 @@ public class PlayerMove : MonoBehaviour
     {
         isJumping = false;
         hpNow = maxHp;
-        animator.Play("Idle");
+        uiAnimator.Play("Idle");
     }
 
     // Update is called once per frame
@@ -45,6 +47,10 @@ public class PlayerMove : MonoBehaviour
     {
         slider.value = Mathf.Lerp(slider.value, (float)hpNow / maxHp, Time.deltaTime);
 
+        if (!GameManagerUI.gameStart)
+        {
+            return;
+        }
         if (hpNow < 1)
         {
             return;
@@ -71,6 +77,7 @@ public class PlayerMove : MonoBehaviour
         }
 
         Vector3 dir = new Vector3(h, 0, v);
+        playerAnimator.SetFloat("Blend", dir.magnitude);
         dir = Camera.main.transform.TransformDirection(dir);
 
         yVelocity -= gravity * Time.deltaTime;
@@ -86,14 +93,15 @@ public class PlayerMove : MonoBehaviour
             hpNow -= damage;
             if (hpNow > 0)
             {
-                animator.Play("Idle");
-                animator.Play("Damage");
+                uiAnimator.Play("Idle");
+                uiAnimator.Play("Damage");
                 damageRecover = DamageRecover();
                 StartCoroutine(damageRecover);
             }
             else
             {
-                animator.Play("Damage");
+                uiAnimator.Play("Damage");
+                GameManagerUI.GameEnd();
             }
         }
     }
@@ -101,9 +109,9 @@ public class PlayerMove : MonoBehaviour
     private IEnumerator DamageRecover()
     {
         yield return new WaitForSeconds(0.3f);
-        animator.Play("Recover");
+        uiAnimator.Play("Recover");
         yield return new WaitForSeconds(0.3f);
-        animator.Play("Idle");
+        uiAnimator.Play("Idle");
 
         StopCoroutine(damageRecover);
         damageRecover = null;

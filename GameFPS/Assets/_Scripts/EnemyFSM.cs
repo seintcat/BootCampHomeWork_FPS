@@ -1,18 +1,21 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class EnemyFSM : MonoBehaviour
 {
     [SerializeField]
-    private float findDistance = 5;
+    private float findDistance = 7;
     [SerializeField]
     private float returnDistance = 1;
     [SerializeField]
     private float attackDistance = 3;
     [SerializeField]
     private float moveSpeed = 5;
+    [SerializeField]
+    private float returnSpeed = 2;
     [SerializeField]
     private CharacterController controller;
     [SerializeField]
@@ -21,6 +24,10 @@ public class EnemyFSM : MonoBehaviour
     private int maxHp = 3;
     [SerializeField]
     private Animator animator;
+    [SerializeField]
+    private int walkActions;
+    [SerializeField]
+    private int dieActions;
 
     private EnemyState state;
     private PlayerMove player;
@@ -29,6 +36,7 @@ public class EnemyFSM : MonoBehaviour
     private Vector3 origin;
     private IEnumerator attack;
     private IEnumerator damaged;
+    private IEnumerator delay;
     private int hpNow;
     private bool walked;
 
@@ -53,6 +61,11 @@ public class EnemyFSM : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (!GameManagerUI.gameStart)
+        {
+            return;
+        }
+
         dir = Vector3.zero;
         switch (state)
         {
@@ -74,19 +87,24 @@ public class EnemyFSM : MonoBehaviour
             case EnemyState.Die:
                 Die();
                 break;
+            case EnemyState.Delay:
+                Delay();
+                break;
         }
 
-        dir.y -= gravity * Time.deltaTime;
         if(controller.enabled)
         {
-            controller.Move(dir.normalized * moveSpeed * Time.deltaTime);
+            dir = dir.normalized;
+            dir.y -= (gravity * Time.deltaTime);
+            controller.Move(new Vector3(0, -gravity, 0) * Time.deltaTime * 3);
+            controller.Move(dir * Time.deltaTime * (state == EnemyState.Move ? moveSpeed : returnSpeed));
         }
     }
 
     private void Idle()
     {
         walked = false;
-        animator.Play("Z_Idle");
+        animator.CrossFade("Idle", 0.1f);
         if ( (player.transform.position - transform.position).magnitude < findDistance)
         {
             state = EnemyState.Move;
@@ -101,22 +119,13 @@ public class EnemyFSM : MonoBehaviour
     {
         dir = player.transform.position - transform.position;
         float distance = dir.magnitude;
-        transform.forward = -player.transform.forward;
+        Vector3 look = player.transform.position;
+        look.y = transform.position.y;
+        transform.LookAt(look);
 
         if (!walked)
         {
-            switch (Random.Range(0, 3))
-            {
-                case 0:
-                    animator.Play("Z_Walk1_InPlace");
-                    break;
-                case 1:
-                    animator.Play("Z_Walk_InPlace");
-                    break;
-                case 2:
-                    animator.Play("Z_Run_InPlace");
-                    break;
-            }
+            animator.CrossFade("Run", 0.1f);
             walked = true;
         }
 
@@ -127,7 +136,7 @@ public class EnemyFSM : MonoBehaviour
         }
         if (distance > findDistance)
         {
-            state = EnemyState.Idle;
+            state = EnemyState.Delay;
             walked = false;
         }
     }
@@ -147,8 +156,13 @@ public class EnemyFSM : MonoBehaviour
     }
     private IEnumerator _Attack()
     {
-        animator.Play("Z_Attack");
-        yield return new WaitForSeconds(1f);
+        if ((player.transform.position - transform.position).magnitude < attackDistance)
+        {
+            yield return new WaitForSeconds(0f);
+            animator.CrossFade("Attack", 0.1f);
+            yield return new WaitForSeconds(0f);
+            yield return new WaitForSeconds(2.5f);
+        }
 
         StopCoroutine(attack);
         attack = null;
@@ -166,21 +180,21 @@ public class EnemyFSM : MonoBehaviour
     {
         dir = origin - transform.position;
         float distance = dir.magnitude;
-        origin.y = transform.position.y;
-        transform.LookAt(origin);
+        Vector3 look = origin;
+        look.y = transform.position.y;
+        dir = dir.normalized;
+        dir.y -= transform.position.y;
+        transform.LookAt(look);
 
         if (!walked)
         {
-            switch (Random.Range(0, 3))
+            switch (Random.Range(0, walkActions))
             {
                 case 0:
-                    animator.Play("Z_Walk1_InPlace");
+                    animator.CrossFade("Walk1", 0.1f);
                     break;
                 case 1:
-                    animator.Play("Z_Walk_InPlace");
-                    break;
-                case 2:
-                    animator.Play("Z_Run_InPlace");
+                    animator.CrossFade("Walk2", 0.1f);
                     break;
             }
             walked = true;
@@ -189,6 +203,7 @@ public class EnemyFSM : MonoBehaviour
         if ((player.transform.position - transform.position).magnitude < findDistance)
         {
             state = EnemyState.Move;
+            walked = false;
         }
 
         if (distance < returnDistance)
@@ -223,6 +238,7 @@ public class EnemyFSM : MonoBehaviour
     }
     private IEnumerator _Damaged()
     {
+        animator.CrossFade("Damaged", 0.1f);
         yield return new WaitForSeconds(1f);
 
         StopCoroutine(damaged);
@@ -235,15 +251,42 @@ public class EnemyFSM : MonoBehaviour
     {
         walked = false;
         controller.enabled = false;
-        switch (Random.Range(0, 2))
+        switch (Random.Range(0, dieActions))
         {
             case 0:
-                animator.Play("Z_FallingBack");
+                animator.CrossFade("Die1", 0.1f);
                 break;
             case 1:
-                animator.Play("Z_FallingForward");
+                animator.CrossFade("Die2", 0.1f);
                 break;
         }
         enabled = false;
+    }
+
+    private void Delay()
+    {
+        if (delay == null)
+        {
+            delay = _Delay();
+            StartCoroutine(delay);
+        }
+        if ((player.transform.position - transform.position).magnitude < findDistance)
+        {
+            if (delay != null)
+            {
+                StopCoroutine(delay);
+                delay = null;
+            }
+            state = EnemyState.Move;
+        }
+    }
+    private IEnumerator _Delay()
+    {
+        animator.CrossFade("Idle", 0.1f);
+        yield return new WaitForSeconds(1f);
+        StopCoroutine(delay);
+        delay = null;
+        state = EnemyState.Idle;
+        yield return null;
     }
 }

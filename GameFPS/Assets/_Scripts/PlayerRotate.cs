@@ -29,7 +29,7 @@ public class PlayerRotate : MonoBehaviour
 
         Vector3 temp = transform.eulerAngles;
 
-        transform.rotation *= Quaternion.AngleAxis(mouseX, new Vector3(0, 1, 0));
+        transform.rotation *= Quaternion.AngleAxis(mouseX * speed * Time.deltaTime, new Vector3(0, 1, 0));
 
         //if(temp.y < (transform.eulerAngles.y - 30) || temp.y > (transform.eulerAngles.y + 30))
         //{

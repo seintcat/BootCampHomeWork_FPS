@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManagerUI : MonoBehaviour
 {
@@ -12,6 +13,12 @@ public class GameManagerUI : MonoBehaviour
     private int checkTime;
     [SerializeField]
     private TextMeshProUGUI text;
+    [SerializeField]
+    private GameObject gameOverUI;
+    [SerializeField]
+    private List<GameObject> whenGameOver;
+    [SerializeField]
+    private GameObject optionUI;
 
     private int timeNow;
     private IEnumerator enumerator;
@@ -23,12 +30,19 @@ public class GameManagerUI : MonoBehaviour
         enumerator = GameStarter();
         StartCoroutine(enumerator);
         instance = this;
+        Cursor.lockState = CursorLockMode.Locked;
+        instance.gameOverUI.SetActive(false);
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+        if(Input.GetKeyDown(KeyCode.Escape) && enumerator == null)
+        {
+            gameStart = false;
+            optionUI.SetActive(true);
+            Cursor.lockState = CursorLockMode.None;
+        }
     }
 
     private IEnumerator GameStarter()
@@ -42,8 +56,12 @@ public class GameManagerUI : MonoBehaviour
         }
         text.text = "Start!";
         yield return new WaitForSeconds(1f);
+        foreach (GameObject obj in instance.whenGameOver)
+        {
+            obj.SetActive(true);
+        }
         gameStart = true;
-        gameObject.SetActive(false);
+        text.gameObject.SetActive(false);
         StopCoroutine(enumerator);
         enumerator = null;
         yield return null;
@@ -51,9 +69,30 @@ public class GameManagerUI : MonoBehaviour
 
     public static void GameEnd()
     {
-        instance.gameObject.SetActive(true);
+        instance.gameOverUI.SetActive(true);
+        instance.text.gameObject.SetActive(true);
         instance.text.color = Color.red;
         instance.text.text = "Game Over";
         gameStart = false;
+        Cursor.lockState = CursorLockMode.None;
+        foreach(GameObject obj in instance.whenGameOver)
+        {
+            obj.SetActive(false);
+        }
+    }
+
+    public void Exit()
+    {
+        Application.Quit();
+        Debug.Log("Exit");
+    }
+    public void Retry()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+    public void Continue()
+    {
+        gameStart = true;
+        Cursor.lockState = CursorLockMode.Locked;
     }
 }

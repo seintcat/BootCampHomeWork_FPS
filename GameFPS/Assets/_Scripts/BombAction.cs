@@ -6,6 +6,10 @@ public class BombAction : MonoBehaviour
 {
     [SerializeField]
     private GameObject fx;
+    [SerializeField]
+    private float explosionRadius = 5;
+    [SerializeField]
+    private int dmage = 5;
 
     // Start is called before the first frame update
     void Start()
@@ -21,7 +25,13 @@ public class BombAction : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        GameObject obj = Instantiate(fx);
+        Collider[] colliders = Physics.OverlapSphere(transform.position, explosionRadius, LayerMask.GetMask("Enemy"));
+        foreach (Collider collider in colliders)
+        {
+            collider.GetComponent<EnemyFSM>().Damage(dmage);
+        }
+
+        GameObject obj = Instantiate(fx);   
         obj.transform.position = transform.position;
         Destroy(obj, 3f);
         gameObject.SetActive(false);

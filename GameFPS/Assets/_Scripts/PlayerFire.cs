@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Experimental.AI;
 using UnityEngine.UI;
@@ -22,11 +23,21 @@ public class PlayerFire : MonoBehaviour
     private PlayerMove player;
     [SerializeField]
     private Animator playerAnimator;
+    [SerializeField]
+    private List<GameObject> gunFire;
+    [SerializeField]
+    private TextMeshProUGUI stateText;
+
+    private IEnumerator gunFireNow;
+    private int gunFireIndex;
+    private bool isGrenade;
 
     // Start is called before the first frame update
     void Start()
     {
         //particleSystem = Instantiate(hitEffect).GetComponent<ParticleSystem>();
+        isGrenade = true;
+        stateText.text = "Grenade";
     }
 
     // Update is called once per frame
@@ -43,10 +54,21 @@ public class PlayerFire : MonoBehaviour
 
         if (Input.GetMouseButtonDown(1))
         {
-            Rigidbody bombInstance = ObjectPoolingManager.Pooling(bomb).GetComponent<Rigidbody>();
-            bombInstance.velocity = Vector3.zero;
-            bombInstance.transform.position = firePos.position;
-            bombInstance.AddForce(Camera.main.transform.forward * power, ForceMode.Impulse);
+            if(isGrenade)
+            {
+                Rigidbody bombInstance = ObjectPoolingManager.Pooling(bomb).GetComponent<Rigidbody>();
+                bombInstance.velocity = Vector3.zero;
+                bombInstance.transform.position = firePos.position;
+                bombInstance.AddForce(Camera.main.transform.forward * power, ForceMode.Impulse);
+            }
+            else
+            {
+                Camera.main.fieldOfView = 15;
+            }
+        }
+        if(!isGrenade && Input.GetMouseButtonUp(1))
+        {
+            Camera.main.fieldOfView = 60;
         }
         if (Input.GetMouseButtonDown(0))
         {
@@ -66,6 +88,39 @@ public class PlayerFire : MonoBehaviour
                     enemy.Damage(damage);
                 }
             }
+
+            if(gunFireNow != null)
+            {
+                StopCoroutine(gunFireNow);
+                gunFireNow = null;
+                gunFire[gunFireIndex].SetActive(false);
+            }
+            gunFireNow = GunFire();
+            StartCoroutine(gunFireNow);
         }
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            isGrenade = true;
+            Camera.main.fieldOfView = 60;
+            stateText.text = "Grenade";
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            isGrenade = false;
+            stateText.text = "Sniper";
+        }
+    }
+
+    private IEnumerator GunFire()
+    {
+        for(int i = 0; i < 3; i++)
+        {
+            gunFireIndex = Random.Range(0, gunFire.Count);
+            gunFire[gunFireIndex].SetActive(true);
+            yield return new WaitForSeconds(0.1f);
+            gunFire[gunFireIndex].SetActive(false);
+        }
+        StopCoroutine(gunFireNow);
+        gunFireNow = null;
     }
 }

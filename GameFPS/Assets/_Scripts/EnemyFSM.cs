@@ -34,12 +34,13 @@ public class EnemyFSM : MonoBehaviour
 
     private EnemyState state;
     private PlayerMove player;
-    private float gravity = 0.9f;
+    //private float gravity = 0.9f;
     private Vector3 dir;
     private Vector3 origin;
     private IEnumerator attack;
     private IEnumerator damaged;
     private IEnumerator delay;
+    private IEnumerator dead;
     private int hpNow;
     private bool walked;
 
@@ -275,6 +276,13 @@ public class EnemyFSM : MonoBehaviour
                 break;
         }
         enabled = false;
+        dead = Dead();
+        StartCoroutine (dead);
+    }
+    private IEnumerator Dead()
+    {
+        yield return new WaitForSeconds(10f);
+        gameObject.SetActive(false);
     }
 
     private void Delay()

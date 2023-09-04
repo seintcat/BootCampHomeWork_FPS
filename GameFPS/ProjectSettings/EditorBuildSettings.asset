@@ -9,8 +9,14 @@ EditorBuildSettings:
     path: Assets/_Scenes/YJumping.unity
     guid: 0b374bc2727d45e458c7bada218bb6a6
   - enabled: 1
+    path: Assets/_Scenes/ParticleAndPhoton.unity
+    guid: e2bd3e4e4f0bc1d45ad3bff9074a5755
+  - enabled: 1
     path: Assets/_Scenes/LoginScene.unity
     guid: 7d10567f892c00749b9c4294ae2db10f
+  - enabled: 1
+    path: Assets/_Scenes/Loading Scene.unity
+    guid: 9eda07a13985d944f90826e9ee0f9c7a
   - enabled: 1
     path: Assets/_Scenes/SampleScene.unity
     guid: 99c9720ab356a0642a771bea13969a05

@@ -12,6 +12,10 @@ public class LogInManager : MonoBehaviour
     private TMP_InputField pass;
     [SerializeField]
     private TextMeshProUGUI text;
+    [SerializeField]
+    private LobbyManager lobby;
+    [SerializeField]
+    private TMP_InputField roomNameInput;
 
     // Start is called before the first frame update
     void Start()
@@ -45,17 +49,27 @@ public class LogInManager : MonoBehaviour
 
     public void LogIn()
     {
+        if (roomNameInput.text == "" && !ConnectionManager.soloMode)
+        {
+            Debug.Log("RoomName!!!");
+            return;
+        }
+
         if (!PlayerPrefs.HasKey(id.text))
         {
             text.text = "ID cannot found!";
         }
-        else if(PlayerPrefs.GetString(id.text, "") == pass.text)
+        else if(PlayerPrefs.GetString(id.text, "") != pass.text)
+        {
+            text.text = "Login failed!";
+        }
+        else if (ConnectionManager.soloMode)
         {
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
         }
         else
         {
-            text.text = "Login failed!";
+            lobby.CreateRoom();
         }
     }
 }

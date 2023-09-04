@@ -13,10 +13,10 @@ public class PlayerFire : MonoBehaviour
     private Transform firePos;
     [SerializeField]
     private float power;
+    //[SerializeField]
+    //private GameObject hitEffect;
     [SerializeField]
-    private GameObject hitEffect;
-    [SerializeField]
-    private ParticleSystem particleSystem;
+    private ParticleSystem _particleSystem;
     [SerializeField]
     private int damage = 1;
     [SerializeField]
@@ -27,6 +27,16 @@ public class PlayerFire : MonoBehaviour
     private List<GameObject> gunFire;
     [SerializeField]
     private TextMeshProUGUI stateText;
+    [SerializeField]
+    private Animator crossHair;
+    [SerializeField]
+    private Animator crossHairZoom;
+    [SerializeField]
+    private GameObject modeNormal;
+    [SerializeField]
+    private GameObject modeZoom;
+    [SerializeField]
+    private Camera overlay;
 
     private IEnumerator gunFireNow;
     private int gunFireIndex;
@@ -64,11 +74,18 @@ public class PlayerFire : MonoBehaviour
             else
             {
                 Camera.main.fieldOfView = 15;
+                overlay.fieldOfView = 15;
+                crossHair.gameObject.SetActive(false);
+                crossHairZoom.gameObject.SetActive(true);
+
             }
         }
         if(!isGrenade && Input.GetMouseButtonUp(1))
         {
             Camera.main.fieldOfView = 60;
+            overlay.fieldOfView = 60;
+            crossHair.gameObject.SetActive(true);
+            crossHairZoom.gameObject.SetActive(false);
         }
         if (Input.GetMouseButtonDown(0))
         {
@@ -78,14 +95,22 @@ public class PlayerFire : MonoBehaviour
 
             if(Physics.Raycast(ray, out hit))
             {
-                particleSystem.transform.position = hit.point;
-                particleSystem.transform.forward = hit.normal;
-                particleSystem.Play();
+                _particleSystem.transform.position = hit.point;
+                _particleSystem.transform.forward = hit.normal;
+                _particleSystem.Play();
 
                 EnemyFSM enemy = hit.collider.gameObject.GetComponent<EnemyFSM>();
                 if (enemy != null)
                 {
                     enemy.Damage(damage);
+                    if (crossHair.gameObject.activeSelf)
+                    {
+                        crossHair.Play("Hit");
+                    }
+                    else
+                    {
+                        crossHairZoom.Play("Hit");
+                    }
                 }
             }
 
@@ -102,12 +127,19 @@ public class PlayerFire : MonoBehaviour
         {
             isGrenade = true;
             Camera.main.fieldOfView = 60;
+            overlay.fieldOfView = 60;
             stateText.text = "Grenade";
+            crossHair.gameObject.SetActive(true);
+            crossHairZoom.gameObject.SetActive(false);
+            modeNormal.gameObject.SetActive(true);
+            modeZoom.gameObject.SetActive(false);
         }
         if (Input.GetKeyDown(KeyCode.Alpha2))
         {
             isGrenade = false;
             stateText.text = "Sniper";
+            modeZoom.gameObject.SetActive(true);
+            modeNormal.gameObject.SetActive(false);
         }
     }
 

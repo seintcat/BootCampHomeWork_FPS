@@ -33,7 +33,6 @@ public class EnemyFSM : MonoBehaviour
     private NavMeshAgent agent;
 
     private EnemyState state;
-    private PlayerMove player;
     //private float gravity = 0.9f;
     private Vector3 dir;
     private Vector3 origin;
@@ -56,7 +55,6 @@ public class EnemyFSM : MonoBehaviour
     void Start()
     {
         state = EnemyState.Idle;
-        player = FindObjectOfType<PlayerMove>();
         origin = transform.position;
         hpNow = maxHp;
         walked = false;
@@ -110,7 +108,7 @@ public class EnemyFSM : MonoBehaviour
         animator.CrossFade("Idle", 0.1f);
         agent.isStopped = true;
         agent.ResetPath();
-        if ( (player.transform.position - transform.position).magnitude < findDistance)
+        if ( (GameManagerUI.playerNow.transform.position - transform.position).magnitude < findDistance)
         {
             state = EnemyState.Move;
         }
@@ -122,7 +120,7 @@ public class EnemyFSM : MonoBehaviour
 
     private void Move()
     {
-        dir = player.transform.position - transform.position;
+        dir = GameManagerUI.playerNow.transform.position - transform.position;
         float distance = dir.magnitude;
 
         if (!walked)
@@ -131,7 +129,7 @@ public class EnemyFSM : MonoBehaviour
             agent.speed = moveSpeed;
             walked = true;
         }
-        agent.SetDestination(player.transform.position);
+        agent.SetDestination(GameManagerUI.playerNow.transform.position);
 
         if (distance < attackDistance)
         {
@@ -147,7 +145,7 @@ public class EnemyFSM : MonoBehaviour
 
     private void Attack()
     {
-        if ((player.transform.position - transform.position).magnitude > attackDistance && attack == null)
+        if ((GameManagerUI.playerNow.transform.position - transform.position).magnitude > attackDistance && attack == null)
         {
             state = EnemyState.Move;
             agent.isStopped = true;
@@ -162,10 +160,10 @@ public class EnemyFSM : MonoBehaviour
     }
     private IEnumerator _Attack()
     {
-        if ((player.transform.position - transform.position).magnitude < attackDistance)
+        if ((GameManagerUI.playerNow.transform.position - transform.position).magnitude < attackDistance)
         {
             yield return new WaitForSeconds(0f);
-            Vector3 look = player.transform.position;
+            Vector3 look = GameManagerUI.playerNow.transform.position;
             look.y = transform.position.y;
             transform.LookAt(look);
             animator.CrossFade("Attack", 0.1f);
@@ -179,9 +177,9 @@ public class EnemyFSM : MonoBehaviour
     }
     public void AttackEvent()
     {
-        if ((player.transform.position - transform.position).magnitude < attackDistance)
+        if ((GameManagerUI.playerNow.transform.position - transform.position).magnitude < attackDistance)
         {
-            player.DamageFoo(damage);
+            GameManagerUI.playerNow.DamageFoo(damage);
         }
     }
 
@@ -211,7 +209,7 @@ public class EnemyFSM : MonoBehaviour
         }
         agent.destination = origin;
 
-        if ((player.transform.position - transform.position).magnitude < findDistance)
+        if ((GameManagerUI.playerNow.transform.position - transform.position).magnitude < findDistance)
         {
             state = EnemyState.Move;
             walked = false;
@@ -294,7 +292,7 @@ public class EnemyFSM : MonoBehaviour
             delay = _Delay();
             StartCoroutine(delay);
         }
-        if ((player.transform.position - transform.position).magnitude < findDistance)
+        if ((GameManagerUI.playerNow.transform.position - transform.position).magnitude < findDistance)
         {
             if (delay != null)
             {

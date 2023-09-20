@@ -8,8 +8,6 @@ public class RoomManager : MonoBehaviour
 {
     [SerializeField]
     private TMP_Text infoText;
-    [SerializeField]
-    private GameObject player;
 
     // Start is called before the first frame update
     void Start()
@@ -38,7 +36,6 @@ public class RoomManager : MonoBehaviour
                 playerName += PhotonNetwork.PlayerList[i].NickName + ", ";
             }
 
-            PhotonNetwork.Instantiate(player.name, Vector3.zero, Quaternion.identity);
             return roomName + "(" + playerCount + " / " + maxPlayer + ")\n" + playerName;
         }
 

@@ -1,12 +1,17 @@
+using Photon.Pun;
+using Photon.Realtime;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class GameManagerUI : MonoBehaviour
 {
     public static bool gameStart = false;
+    public static PlayerMove playerNow;
+
     private static GameManagerUI instance;
 
     [SerializeField]
@@ -19,18 +24,51 @@ public class GameManagerUI : MonoBehaviour
     private List<GameObject> whenGameOver;
     [SerializeField]
     private GameObject optionUI;
+    [SerializeField]
+    private GameObject cam;
+    [SerializeField]
+    private Slider hpSlider;
+    [SerializeField]
+    private Animator hitAnimator;
+    [SerializeField]
+    private ParticleSystem shootParticle;
+    [SerializeField]
+    private TextMeshProUGUI stateText;
+    [SerializeField]
+    private Animator crossHairNormal;
+    [SerializeField]
+    private Animator crossHairZoom;
+    [SerializeField]
+    private GameObject modeNormal;
+    [SerializeField]
+    private GameObject modeZoom;
+    [SerializeField]
+    private Camera overlayCam;
+    [SerializeField]
+    private List<Transform> spawnPos;
+    [SerializeField]
+    private GameObject playerPref;
 
     private int timeNow;
     private IEnumerator enumerator;
 
+    private void Awake()
+    {
+        instance = this;
+    }
+
     // Start is called before the first frame update
     void Start()
     {
+        if (ConnectionManager.soloMode)
+        {
+            Instantiate(playerPref);
+        }
+        else
+        {
+            PhotonNetwork.Instantiate(playerPref.name, Vector3.zero, Quaternion.identity);
+        }
         timeNow = 0;
-        enumerator = GameStarter();
-        StartCoroutine(enumerator);
-        instance = this;
-        Cursor.lockState = CursorLockMode.Locked;
         instance.gameOverUI.SetActive(false);
     }
 
@@ -43,6 +81,22 @@ public class GameManagerUI : MonoBehaviour
             optionUI.SetActive(true);
             Cursor.lockState = CursorLockMode.None;
         }
+    }
+
+    public static void GameStart(Transform camPos, PlayerMove playerMove, PlayerFire playerFire, PUN_PlayerHandler punPlayer)
+    {
+        instance.gameOverUI.SetActive(false);
+        instance.enumerator = instance.GameStarter();
+        Cursor.lockState = CursorLockMode.Locked;
+
+        playerNow = playerMove;
+        instance.cam.transform.SetParent(camPos);
+        instance.cam.transform.localPosition = Vector3.zero;
+        playerMove.Set(instance.hpSlider, instance.hitAnimator);
+        playerFire.Set(instance.shootParticle, instance.stateText, instance.crossHairNormal, instance.crossHairZoom, instance.modeNormal, instance.modeZoom, instance.overlayCam);
+        punPlayer.transform.position = instance.spawnPos[Random.Range(0, instance.spawnPos.Count)].position;
+
+        instance.StartCoroutine(instance.enumerator);
     }
 
     private IEnumerator GameStarter()

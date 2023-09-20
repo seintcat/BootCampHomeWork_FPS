@@ -1,3 +1,5 @@
+using Photon.Pun;
+using Photon.Realtime;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -39,7 +41,7 @@ public class LoadingNextScene : MonoBehaviour
             loadingSlider.value = asyncOperation.progress;
             loadingText.text = (asyncOperation.progress * 100).ToString() + "%";
 
-            if (asyncOperation.progress >= 0.9f)
+            if (asyncOperation.progress >= 0.90f)
             {
                 asyncOperation.allowSceneActivation = true;
             }

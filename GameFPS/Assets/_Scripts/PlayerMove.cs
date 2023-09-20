@@ -14,10 +14,6 @@ public class PlayerMove : MonoBehaviour
     [SerializeField]
     private float speed;
     [SerializeField]
-    private Slider slider;
-    [SerializeField]
-    private Animator uiAnimator;
-    [SerializeField]
     private Animator playerAnimator;
 
     private bool isJumping;
@@ -25,6 +21,8 @@ public class PlayerMove : MonoBehaviour
     private float gravity = 0.9f;
     private int hpNow;
     private IEnumerator damageRecover;
+    private Slider slider;
+    private Animator uiAnimator;
 
     public float hpBar
     {
@@ -115,5 +113,12 @@ public class PlayerMove : MonoBehaviour
 
         StopCoroutine(damageRecover);
         damageRecover = null;
+    }
+
+    public void Set(Slider _slider, Animator _uiAnimator)
+    {
+        enabled = true;
+        slider = _slider;
+        uiAnimator = _uiAnimator;
     }
 }

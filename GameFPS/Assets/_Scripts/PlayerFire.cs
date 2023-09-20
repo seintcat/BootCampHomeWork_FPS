@@ -16,8 +16,6 @@ public class PlayerFire : MonoBehaviour
     //[SerializeField]
     //private GameObject hitEffect;
     [SerializeField]
-    private ParticleSystem _particleSystem;
-    [SerializeField]
     private int damage = 1;
     [SerializeField]
     private PlayerMove player;
@@ -25,22 +23,17 @@ public class PlayerFire : MonoBehaviour
     private Animator playerAnimator;
     [SerializeField]
     private List<GameObject> gunFire;
-    [SerializeField]
-    private TextMeshProUGUI stateText;
-    [SerializeField]
-    private Animator crossHair;
-    [SerializeField]
-    private Animator crossHairZoom;
-    [SerializeField]
-    private GameObject modeNormal;
-    [SerializeField]
-    private GameObject modeZoom;
-    [SerializeField]
-    private Camera overlay;
 
     private IEnumerator gunFireNow;
     private int gunFireIndex;
     private bool isGrenade;
+    private ParticleSystem _particleSystem;
+    private TextMeshProUGUI stateText;
+    private Animator crossHair;
+    private Animator crossHairZoom;
+    private GameObject modeNormal;
+    private GameObject modeZoom;
+    private Camera overlay;
 
     // Start is called before the first frame update
     void Start()
@@ -154,5 +147,17 @@ public class PlayerFire : MonoBehaviour
         }
         StopCoroutine(gunFireNow);
         gunFireNow = null;
+    }
+
+    public void Set(ParticleSystem shootParticle, TextMeshProUGUI _stateText, Animator crossHairNormal, Animator _crossHairZoom, GameObject _modeNormal, GameObject _modeZoom, Camera overlayCam)
+    {
+        enabled = true;
+        _particleSystem = shootParticle;
+        stateText = _stateText;
+        crossHair = crossHairNormal;
+        crossHairZoom = _crossHairZoom;
+        modeNormal = _modeNormal;
+        modeZoom = _modeZoom;
+        overlay = overlayCam;
     }
 }

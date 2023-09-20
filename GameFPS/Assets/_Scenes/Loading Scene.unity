@@ -482,6 +482,7 @@ MonoBehaviour:
   sceneNumber: 3
   loadingSlider: {fileID: 310386366}
   loadingText: {fileID: 1425735214}
+  player: {fileID: 362810667175293766, guid: 2af14541d9150034fa5c31fecb84fce1, type: 3}
 --- !u!1 &1425735212
 GameObject:
   m_ObjectHideFlags: 0
